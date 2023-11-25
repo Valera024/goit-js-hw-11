@@ -22,7 +22,7 @@ refs.btnMore.style.display = "none"
 refs.form.addEventListener("submit", handleSubmit)
 refs.btnMore.addEventListener("click", loadMore)
 
-function handleSubmit(event) {
+async function handleSubmit(event) {
     event.preventDefault();
     const inputValue = refs.input.value;
 
@@ -30,16 +30,20 @@ function handleSubmit(event) {
         refs.gallery.innerHTML = '';
         page = 1;
         previousTextKey = inputValue
-        fetchAndRender()
+        await fetchAndRender()
     }
 }
 let lightBox = true;
 let gallery;  
 
-function fetchAndRender() {
-  fetchSearchUser(previousTextKey, page, perPage)
-    .then(handleApiResponse)
-    .catch(handleError)
+async function fetchAndRender() {
+    try {
+        const response = await fetchSearchUser(previousTextKey, page, perPage)
+        handleApiResponse(response)
+    }
+    catch (error) {
+        handleError(error)
+    }
 }
 
 function handleApiResponse(response) {
@@ -102,6 +106,7 @@ function handleScrollBehavior(response) {
     if (totalHits > page * perPage) {
         refs.btnMore.style.display = "block";
     } else {
+        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
         refs.btnMore.style.display = "none";
    }
 }
@@ -113,10 +118,7 @@ function handleError(error) {
 
 
 
-function loadMore() {
+async function loadMore() {
   page += 1;
   fetchAndRender();
-  if (totalHits < page * perPage) {
-    Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-  }
 }
